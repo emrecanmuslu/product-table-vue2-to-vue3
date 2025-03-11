@@ -11,7 +11,7 @@ class ProductService {
         skip,
         sortBy: 'price',
         order,
-        delay: 500,
+        delay: 250,
       }
     });
   }
