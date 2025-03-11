@@ -2,17 +2,17 @@
   <div class="pagination">
     <button
       @click="previousPage"
-      :disabled="currentPage <= 1"
+      :disabled="props.currentPage <= 1"
       class="pagination-button"
     >
       Önceki
     </button>
     <span class="page-info">
-      Sayfa {{ currentPage }} / {{ totalPages }}
+      Sayfa {{ props.currentPage }} / {{ props.totalPages }}
     </span>
     <button
       @click="nextPage"
-      :disabled="currentPage >= totalPages"
+      :disabled="props.currentPage >= props.totalPages"
       class="pagination-button"
     >
       Sonraki
@@ -20,34 +20,28 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
 
-export default defineComponent({
-  name: 'Pagination',
-  props: {
-    currentPage: {
-      type: Number as PropType<number>,
-      required: true
-    },
-    totalPages: {
-      type: Number as PropType<number>,
-      required: true
-    }
-  },
-  methods: {
-    previousPage(): void {
-      if (this.currentPage > 1) {
-        this.$emit('page-changed', this.currentPage - 1);
-      }
-    },
-    nextPage(): void {
-      if (this.currentPage < this.totalPages) {
-        this.$emit('page-changed', this.currentPage + 1);
-      }
-    }
+const props = defineProps<{
+  currentPage: number;
+  totalPages: number;
+}>();
+
+const emit = defineEmits<{
+  (e: 'page-changed', page: number): void;
+}>();
+
+const previousPage = () => {
+  if (props.currentPage > 1) {
+    emit('page-changed', props.currentPage - 1);
   }
-});
+};
+
+const nextPage = () => {
+  if (props.currentPage < props.totalPages) {
+    emit('page-changed', props.currentPage + 1);
+  }
+};
 </script>
 
 <style lang="scss" scoped>
