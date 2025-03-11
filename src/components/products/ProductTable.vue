@@ -74,6 +74,11 @@ export default defineComponent({
     },
     sortDirection() {
       this.updateRouteQuery();
+    },
+    '$route'(to) {
+      if (to.name === 'products') {
+        this.updateRouteQuery();
+      }
     }
   },
   created(): void {
