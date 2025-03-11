@@ -1,5 +1,8 @@
 <template>
   <div class="product-table-container">
+    <div v-if="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
     <div class="sorting-controls">
       <select :value="sortDirection" @change="changeSort($event.target.value)">
         <option value="asc">Fiyat: Artan</option>
@@ -55,7 +58,8 @@ export default defineComponent({
       'loading',
       'currentPage',
       'totalPages',
-      'sortDirection'
+      'sortDirection',
+      'error'
     ]),
     queryPage(): number {
       return parseInt(this.$route.query?.page as string) || 1;

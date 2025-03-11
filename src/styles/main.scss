@@ -64,6 +64,15 @@ h1 {
   }
 }
 
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
 .pagination {
   margin: 20px 0;
   align-items: center;

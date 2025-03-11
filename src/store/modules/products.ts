@@ -11,14 +11,15 @@ export default {
     currentPage: 1,
     totalPages: 1,
     itemsPerPage: 10,
-    sortDirection: 'asc'
+    sortDirection: 'asc',
   },
   getters: {
     products: (state: ProductsState) => state.products,
     loading: (state: ProductsState) => state.loading,
     currentPage: (state: ProductsState) => state.currentPage,
     totalPages: (state: ProductsState) => state.totalPages,
-    sortDirection: (state: ProductsState) => state.sortDirection
+    sortDirection: (state: ProductsState) => state.sortDirection,
+    error: (state: ProductsState) => state.error,
   },
   mutations: {
     SET_PRODUCTS(state: ProductsState, products: Product[]) {
@@ -35,18 +36,29 @@ export default {
     },
     SET_SORT_DIRECTION(state: ProductsState, direction: SortDirection) {
       state.sortDirection = direction
+    },
+    SET_ERROR(state: ProductsState, error: string | null) {
+      state.error = error
     }
   },
   actions: {
     async fetchProducts({commit, state}: ActionContext<ProductsState, any>) {
       try {
         commit('SET_LOADING', true)
+        commit('SET_ERROR', null)
 
-        const response = await ProductService.getProducts(state.currentPage, state.itemsPerPage, state.sortDirection)
+        const response = await ProductService.getProducts(
+          state.currentPage,
+          state.itemsPerPage,
+          state.sortDirection
+        )
 
         commit('SET_PRODUCTS', response.data.products)
         const totalPages = Math.ceil(response.data.total / state.itemsPerPage)
         commit('SET_TOTAL_PAGES', totalPages)
+      } catch (e: any) {
+        commit('SET_ERROR', 'Ürünler yüklenirken bir hata oluştu.')
+        commit('SET_PRODUCTS', [])
       } finally {
         commit('SET_LOADING', false)
       }
