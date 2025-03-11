@@ -10,7 +10,8 @@ class ProductService {
         limit,
         skip,
         sortBy: 'price',
-        order
+        order,
+        delay: 500,
       }
     });
   }
