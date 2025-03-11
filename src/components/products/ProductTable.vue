@@ -4,7 +4,7 @@
       <p>{{ error }}</p>
     </div>
     <div class="sorting-controls">
-      <select :value="sortDirection" @change="changeSort($event.target.value)">
+      <select :value="sortDirection" @change="handleSortChange($event)">
         <option value="asc">Fiyat: Artan</option>
         <option value="desc">Fiyat: Azalan</option>
       </select>
@@ -36,92 +36,99 @@
     <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
-      @page-changed="changePage"
+      @page-changed="handlePageChange"
     />
     <Loading v-if="loading"/>
   </div>
 </template>
 
-<script lang="ts">
-import {defineComponent} from 'vue';
-import {mapGetters, mapActions} from 'vuex';
+<script setup lang="ts">
+import {computed, watch, onMounted} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import {SortDirection} from '@/types/product';
 import Loading from "@/components/ui/Loading.vue";
 import Pagination from "@/components/ui/Pagination.vue";
+import {useProductsStore} from '@/store/modules/products';
+import {storeToRefs} from 'pinia';
 
-export default defineComponent({
-  name: 'ProductTable',
-  components: {Pagination, Loading},
-  computed: {
-    ...mapGetters('products', [
-      'products',
-      'loading',
-      'currentPage',
-      'totalPages',
-      'sortDirection',
-      'error'
-    ]),
-    queryPage(): number {
-      return parseInt(this.$route.query?.page as string) || 1;
-    },
-    querySort(): SortDirection {
-      return (this.$route.query?.sort as SortDirection) || 'asc';
-    }
-  },
-  watch: {
-    currentPage() {
-      this.updateRouteQuery();
-    },
-    sortDirection() {
-      this.updateRouteQuery();
-    },
-    '$route'(to) {
-      if (to.name === 'products') {
-        this.updateRouteQuery();
-      }
-    }
-  },
-  created(): void {
-    const page = this.queryPage;
-    const sort = this.querySort;
+const productsStore = useProductsStore();
+const route = useRoute();
+const router = useRouter();
 
-    if (page !== this.currentPage) {
-      this.changePage(page);
-    }
+const {
+  getProducts: products,
+  getLoading: loading,
+  getCurrentPage: currentPage,
+  getTotalPages: totalPages,
+  getSortDirection: sortDirection,
+  getError: error
+} = storeToRefs(productsStore);
 
-    if (sort !== this.sortDirection) {
-      this.changeSort(sort);
-    }
+const queryPage = computed(() => {
+  return parseInt(route.query?.page as string) || 1;
+});
 
-    if (!this.$route.query?.page && !this.$route.query?.sort) {
-      this.updateRouteQuery();
-    }
+const querySort = computed(() => {
+  return (route.query?.sort as SortDirection) || 'asc';
+});
 
-    this.fetchProducts()
-  },
-  methods: {
-    ...mapActions('products', [
-      'fetchProducts',
-      'changePage',
-      'changeSort'
-    ]),
-    updateRouteQuery(): void {
-      const currentQuery = this.$route.query;
-      const newQuery = {...currentQuery};
+const updateRouteQuery = () => {
+  const currentQuery = route.query;
+  const newQuery = {...currentQuery};
 
-      if (newQuery.page !== this.currentPage.toString()) {
-        newQuery.page = this.currentPage.toString();
-      }
-
-      if (newQuery.sort !== this.sortDirection) {
-        newQuery.sort = this.sortDirection;
-      }
-
-      if (JSON.stringify(currentQuery) !== JSON.stringify(newQuery)) {
-        this.$router.replace({query: newQuery});
-      }
-    },
+  if (newQuery.page !== currentPage.value.toString()) {
+    newQuery.page = currentPage.value.toString();
   }
+
+  if (newQuery.sort !== sortDirection.value) {
+    newQuery.sort = sortDirection.value;
+  }
+
+  if (JSON.stringify(currentQuery) !== JSON.stringify(newQuery)) {
+    router.replace({query: newQuery});
+  }
+};
+
+const handlePageChange = (page: number) => {
+  productsStore.changePage(page);
+};
+
+const handleSortChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  productsStore.changeSort(target.value as SortDirection);
+};
+
+watch(currentPage, () => {
+  updateRouteQuery();
+});
+
+watch(sortDirection, () => {
+  updateRouteQuery();
+});
+
+watch(route, (routeObj) => {
+  if (routeObj.name === 'products') {
+    updateRouteQuery();
+  }
+}, {deep: true});
+
+onMounted(() => {
+  const page = queryPage.value;
+  const sort = querySort.value;
+
+  if (page !== currentPage.value) {
+    productsStore.changePage(page);
+  }
+
+  if (sort !== sortDirection.value) {
+    productsStore.changeSort(sort);
+  }
+
+  if (!route.query?.page && !route.query?.sort) {
+    updateRouteQuery();
+  }
+
+  productsStore.fetchProducts();
 });
 </script>
 
