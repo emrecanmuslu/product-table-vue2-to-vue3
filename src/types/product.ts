@@ -10,13 +10,11 @@ export interface ProductsState {
 
 export interface Product {
   id: number
-  name: string
-  description: string
+  title: string
   price: number
   category: string
-  imageUrl?: string
-  inStock: boolean
-  createdAt: string
+  rating: string
+  stock: boolean
 }
 
 export type SortDirection = 'asc' | 'desc';
